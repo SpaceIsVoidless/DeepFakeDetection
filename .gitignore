@@ -1,0 +1,60 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Project specific
+uploads/*
+!uploads/.gitkeep
+
+# Large model files (downloaded at deployment)
+tf_model.h5
+xception_weights_tf_dim_ordering_tf_kernels_notop.h5
+
+# Small model files are tracked in Git:
+# Meso4_DF.h5
+# Meso4_F2F.h5  
+# MesoInception_DF.h5
+# MesoInception_F2F.h5
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# YoYo AI version control directory
+.yoyo/
