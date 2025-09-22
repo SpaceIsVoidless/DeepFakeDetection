@@ -35,6 +35,7 @@ ENV/
 # Project specific
 uploads/*
 !uploads/.gitkeep
+index.html
 
 # Large model files (downloaded at deployment)
 tf_model.h5

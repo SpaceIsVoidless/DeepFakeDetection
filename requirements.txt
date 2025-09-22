@@ -2,10 +2,10 @@
 # Core Flask dependencies
 Flask==3.0.0
 Werkzeug==3.0.1
-gunicorn==21.2.0
 
-# ML and AI dependencies
+# ML and AI dependencies (optional - will fallback gracefully)
 tensorflow==2.15.0
+keras==2.15.0
 numpy==1.24.3
 h5py==3.10.0
 
@@ -14,6 +14,5 @@ opencv-python-headless==4.8.1.78
 Pillow==10.1.0
 
 # Utilities
-python-dotenv==1.0.0
 requests==2.31.0
 tqdm==4.66.1
