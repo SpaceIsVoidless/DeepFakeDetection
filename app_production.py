@@ -227,7 +227,7 @@ def home():
     except Exception as e:
         logger.warning(f"Could not read index.html: {e}")
     
-    # Fallback to embedded HTML
+    # Fallback to embedded HTML with full matrix theme
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -236,141 +236,446 @@ def home():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>DeepFake Detection Matrix</title>
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            body { background: #000; color: #00ff41; font-family: 'Courier New', monospace; }
-            .matrix-bg { 
-                background: linear-gradient(45deg, #001100, #003300);
-                background-image: radial-gradient(circle at 25% 25%, #00ff41 0%, transparent 50%);
+            :root {
+                --primary-dark: #000000;
+                --secondary-dark: #111111;
+                --accent-white: #ffffff;
+                --accent-gray: #888888;
             }
-            .glow { box-shadow: 0 0 20px rgba(0, 255, 65, 0.3); }
-            .result-card { 
-                background: rgba(0, 0, 0, 0.8); 
-                border: 1px solid #00ff41; 
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--primary-dark);
+                overflow-x: hidden;
+                color: var(--accent-white);
+            }
+
+            h1, h2, h3 {
+                font-family: 'Space Grotesk', sans-serif;
+            }
+
+            .matrix-bg {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: -1;
+                background: #000;
+            }
+
+            .matrix-bg canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .cyber-grid {
+                background-image: 
+                    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0),
+                    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+                background-size: 40px 40px;
+                background-position: 0 0, 20px 20px;
+            }
+
+            .drop-zone {
+                border: 2px dashed rgba(255, 255, 255, 0.2);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                backdrop-filter: blur(10px);
+                background: rgba(0, 0, 0, 0.7);
+            }
+
+            .drop-zone:hover {
+                border-color: var(--accent-white);
+                background: rgba(0, 0, 0, 0.9);
+                transform: translateY(-2px) scale(1.01);
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            }
+
+            .result-card {
+                backdrop-filter: blur(10px);
+                background: rgba(0, 0, 0, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .result-card:hover {
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+                border-color: var(--accent-white);
+            }
+
+            .score-animation {
+                transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .score-animation.changed {
+                animation: pulse 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+                100% { transform: scale(1); }
+            }
+
+            .glow {
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+
+            .glow:hover {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+
+            .model-icon {
                 transition: all 0.3s ease;
             }
-            .result-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 65, 0.2); }
+
+            .result-card:hover .model-icon {
+                transform: scale(1.1) rotate(5deg);
+            }
         </style>
     </head>
-    <body class="matrix-bg min-h-screen">
-        <div class="container mx-auto px-4 py-8">
-            <h1 class="text-5xl font-bold text-center mb-4 text-green-400">🔍 DeepFake Detection Matrix</h1>
-            <p class="text-center text-green-300 mb-8">Neural Network Ensemble • Real-time Analysis • Forensic Grade Detection</p>
+    <body class="min-h-screen text-white">
+        <div class="matrix-bg">
+            <canvas id="matrix"></canvas>
+        </div>
+        
+        <div class="container mx-auto px-4 py-4 relative">
+            <div class="absolute top-4 right-4 flex gap-2 z-10">
+                <button onclick="window.open('https://lens.google.com/upload', '_blank');" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                    Google Lens
+                </button>
+            </div>
             
-            <div class="max-w-4xl mx-auto">
-                <div class="bg-black p-6 rounded-lg border border-green-400 mb-6 glow">
-                    <input type="file" id="fileInput" accept="image/*,video/*" 
-                           class="w-full p-3 bg-gray-900 text-green-400 border border-green-600 rounded mb-4">
-                    <button onclick="analyzeFile()" 
-                            class="w-full p-3 bg-green-600 text-black font-bold rounded hover:bg-green-500 glow transition-all">
-                        🚀 ANALYZE WITH 6 AI MODELS
-                    </button>
+            <header class="text-center mb-12 animate__animated animate__fadeIn pt-8">
+                <h1 class="text-6xl font-extrabold mb-4 tracking-tight drop-shadow-lg">
+                    <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                        DeepFake Detection Matrix
+                    </span>
+                </h1>
+                <p class="text-xl animate-float text-gray-300">
+                    Neural Network Ensemble • Real-time Analysis • Forensic Grade Detection
+                </p>
+                <div class="mt-4 text-sm text-gray-400">
+                    <span class="inline-block mx-2">🧠 6 AI Models</span>
+                    <span class="inline-block mx-2">⚡ Instant Results</span>
+                    <span class="inline-block mx-2">🔬 Artifact Analysis</span>
                 </div>
-                
-                <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">MesoNet</h3>
+            </header>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Left Side - Upload Section -->
+                <div class="lg:w-1/2">
+                    <div class="rounded-2xl shadow-2xl p-8 backdrop-blur-lg cyber-grid" style="background-color: var(--secondary-dark);">
+                        <!-- Drop Zone -->
+                        <div id="drop-zone" class="drop-zone rounded-xl p-10 text-center cursor-pointer">
+                            <div class="space-y-4">
+                                <svg class="mx-auto h-16 w-16 model-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" style="color: var(--accent-white);">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div style="color: var(--accent-gray);">
+                                    <p class="text-xl font-semibold">Drag and drop your files here</p>
+                                    <p class="text-sm">or</p>
+                                    <button class="mt-2 px-8 py-3 rounded-lg shadow-lg transition-all font-medium transform hover:scale-105 glow" style="background-color: var(--accent-white); color: var(--primary-dark);">
+                                        Browse Files
+                                    </button>
+                                </div>
+                                <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.mp4,.avi" multiple>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-400 mb-2">Facial Manipulation Detection</p>
-                        <p id="meso-result" class="text-white font-mono">-</p>
+
+                        <div id="loading" class="loading hidden">
+                            <div class="loading-bar"></div>
+                        </div>
+
+                        <div id="error-message" class="hidden text-center text-red-400 font-semibold mt-4"></div>
                     </div>
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">ResNet50</h3>
+                </div>
+
+                <!-- Right Side - Analysis Results -->
+                <div class="lg:w-1/2">
+                    <div id="results" class="bg-black/50 rounded-2xl shadow-2xl p-8 backdrop-blur-lg cyber-grid">
+                        <h2 class="text-3xl font-bold text-white mb-6 text-center">
+                            <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                Neural Analysis Matrix
+                            </span>
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div id="mesonet" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">MesoNet</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Facial Manipulation Detection</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
+                            <div id="resnet50" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">ResNet50</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Deep Residual Analysis</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
+                            <div id="xception" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-purple-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">Xception</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Extreme Inception Detection</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
+                            <div id="deepfacelab" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">DeepFaceLab</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Face Swap Detection</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
+                            <div id="dfdnet" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">DFDNet</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Degradation Analysis</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
+                            <div id="faceforensics" class="result-card p-4 rounded-xl border border-gray-700">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 bg-cyan-500 rounded-full mr-2 animate-pulse"></div>
+                                    <h3 class="font-semibold text-white text-lg">FaceForensics</h3>
+                                </div>
+                                <div class="text-sm text-gray-400 mb-2">Forensic Analysis</div>
+                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
+                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
+                            </div>
                         </div>
-                        <p class="text-xs text-gray-400 mb-2">Deep Residual Analysis</p>
-                        <p id="resnet-result" class="text-white font-mono">-</p>
-                    </div>
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-purple-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">Xception</h3>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-2">Extreme Inception Detection</p>
-                        <p id="xception-result" class="text-white font-mono">-</p>
-                    </div>
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">DeepFaceLab</h3>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-2">Face Swap Detection</p>
-                        <p id="deepface-result" class="text-white font-mono">-</p>
-                    </div>
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">DFDNet</h3>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-2">Degradation Analysis</p>
-                        <p id="dfdnet-result" class="text-white font-mono">-</p>
-                    </div>
-                    <div class="result-card p-4 rounded">
-                        <div class="flex items-center mb-2">
-                            <div class="w-3 h-3 bg-cyan-500 rounded-full mr-2 animate-pulse"></div>
-                            <h3 class="text-green-400 font-bold">FaceForensics</h3>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-2">Forensic Analysis</p>
-                        <p id="forensics-result" class="text-white font-mono">-</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
-            async function analyzeFile() {
-                const fileInput = document.getElementById('fileInput');
-                const results = document.getElementById('results');
-                
-                if (!fileInput.files[0]) {
-                    alert('Please select a file first');
-                    return;
-                }
-                
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                
-                // Show loading
-                results.classList.remove('hidden');
-                const resultElements = ['meso-result', 'resnet-result', 'xception-result', 'deepface-result', 'dfdnet-result', 'forensics-result'];
-                resultElements.forEach(id => {
-                    document.getElementById(id).textContent = 'Analyzing...';
-                });
-                
-                try {
-                    const response = await fetch('/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                        return;
-                    }
-                    
-                    // Update results
-                    const models = ['MesoNet', 'ResNet50', 'Xception', 'DeepFaceLab', 'DFDNet', 'FaceForensics'];
-                    const elements = ['meso-result', 'resnet-result', 'xception-result', 'deepface-result', 'dfdnet-result', 'forensics-result'];
-                    
-                    models.forEach((model, i) => {
-                        if (data[model]) {
-                            const result = data[model];
-                            const percentage = (result.score * 100).toFixed(1);
-                            const verdict = result.is_fake ? 'DEEPFAKE' : 'AUTHENTIC';
-                            const color = result.is_fake ? 'text-red-400' : 'text-green-400';
-                            
-                            document.getElementById(elements[i]).innerHTML = 
-                                `<span class="${color}">${percentage}% - ${verdict}</span>`;
+            // Matrix animation
+            const canvas = document.getElementById('matrix');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Matrix characters
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+
+            // Initialize drops
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+
+            // Draw matrix rain
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    if (i % 2 === 0) {
+                        const text = chars[Math.floor(Math.random() * chars.length)];
+                        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.99) {
+                            drops[i] = 0;
                         }
-                    });
-                    
-                } catch (error) {
-                    alert('Network error: ' + error.message);
+                        drops[i] += 0.5;
+                    }
                 }
+            }
+
+            // Animation loop
+            setInterval(draw, 50);
+
+            // File handling
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+
+            // Handle drag and drop events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('ring', 'ring-white');
+                dropZone.style.transform = 'scale(1.02)';
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('ring', 'ring-white');
+                dropZone.style.transform = 'scale(1)';
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFiles);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles({ target: { files } });
+            }
+
+            function handleFiles(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    uploadFile(file);
+                }
+            }
+
+            function uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                loading.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+
+                // Show loading state
+                const resultElements = ['mesonet', 'resnet50', 'xception', 'deepfacelab', 'dfdnet', 'faceforensics'];
+                resultElements.forEach(id => {
+                    const element = document.getElementById(id);
+                    const scoreElement = element.querySelector('.score');
+                    const resultElement = element.querySelector('.result');
+                    scoreElement.textContent = 'Analyzing...';
+                    resultElement.textContent = 'Processing...';
+                });
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.classList.add('hidden');
+                    if (data.error) {
+                        errorMessage.textContent = data.error;
+                        errorMessage.classList.remove('hidden');
+                    } else {
+                        errorMessage.classList.add('hidden');
+                        updateResults(data);
+                    }
+                })
+                .catch(error => {
+                    loading.classList.add('hidden');
+                    errorMessage.textContent = 'An error occurred while processing the file.';
+                    errorMessage.classList.remove('hidden');
+                });
+            }
+
+            function updateResults(data) {
+                // Map API response names to HTML element IDs
+                const modelMapping = {
+                    'MesoNet': 'mesonet',
+                    'ResNet50': 'resnet50', 
+                    'Xception': 'xception',
+                    'DeepFaceLab': 'deepfacelab',
+                    'DFDNet': 'dfdnet',
+                    'FaceForensics': 'faceforensics'
+                };
+                
+                Object.entries(data).forEach(([model, result]) => {
+                    const elementId = modelMapping[model] || model.toLowerCase();
+                    const element = document.getElementById(elementId);
+                    
+                    if (element && result && typeof result === 'object') {
+                        const scoreElement = element.querySelector('.score');
+                        const resultElement = element.querySelector('.result');
+                        
+                        if (scoreElement && resultElement) {
+                            scoreElement.classList.add('changed');
+                            
+                            // Format score as percentage
+                            const percentage = (result.score * 100).toFixed(1);
+                            scoreElement.textContent = `${percentage}%`;
+                            
+                            // Update result text and color
+                            const verdict = result.is_fake ? 'DEEPFAKE' : 'AUTHENTIC';
+                            resultElement.textContent = verdict;
+                            resultElement.className = `result font-semibold ${result.is_fake ? 'text-red-400' : 'text-green-400'}`;
+                            
+                            // Update the indicator dot
+                            const dot = element.querySelector('.rounded-full');
+                            if (dot) {
+                                dot.className = `w-3 h-3 rounded-full mr-2 ${result.is_fake ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`;
+                            }
+                            
+                            setTimeout(() => {
+                                scoreElement.classList.remove('changed');
+                            }, 500);
+                        }
+                    }
+                });
+            }
+
+            // Initialize results box
+            resetResults();
+
+            function resetResults() {
+                document.querySelectorAll('.score').forEach(el => {
+                    el.textContent = '-';
+                });
+                document.querySelectorAll('.result').forEach(el => {
+                    el.textContent = '-';
+                });
             }
         </script>
     </body>
