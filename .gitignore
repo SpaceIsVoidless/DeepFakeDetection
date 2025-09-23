@@ -37,15 +37,14 @@ uploads/*
 !uploads/.gitkeep
 index.html
 
-# Large model files (downloaded at deployment)
+# All model files (too large for Vercel deployment)
+*.h5
 tf_model.h5
 xception_weights_tf_dim_ordering_tf_kernels_notop.h5
-
-# Small model files are tracked in Git:
-# Meso4_DF.h5
-# Meso4_F2F.h5  
-# MesoInception_DF.h5
-# MesoInception_F2F.h5
+Meso4_DF.h5
+Meso4_F2F.h5  
+MesoInception_DF.h5
+MesoInception_F2F.h5
 
 # Logs
 *.log
