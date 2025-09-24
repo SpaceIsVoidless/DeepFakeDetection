@@ -37,7 +37,7 @@ uploads/*
 !uploads/.gitkeep
 index.html
 
-# All model files (too large for Vercel deployment)
+# Model files (not needed for Vercel serverless deployment)
 *.h5
 tf_model.h5
 xception_weights_tf_dim_ordering_tf_kernels_notop.h5
@@ -45,6 +45,9 @@ Meso4_DF.h5
 Meso4_F2F.h5  
 MesoInception_DF.h5
 MesoInception_F2F.h5
+
+# Vercel deployment
+.vercel
 
 # Logs
 *.log

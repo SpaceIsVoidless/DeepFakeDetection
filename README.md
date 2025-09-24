@@ -1,27 +1,28 @@
-# 🕵️ DeepFake Detection App
+# 🔍 DeepFake Detection Matrix
 
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.0-green?style=for-the-badge&logo=flask)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-orange?style=for-the-badge&logo=tensorflow)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=for-the-badge&logo=vercel)
 ![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)
 
-**AI-Powered Deepfake Detection with Multiple Neural Networks**
+**Neural Network Ensemble • Real-time Analysis • Forensic Grade Detection**
 
-[🚀 Live Demo](https://your-app.onrender.com) • [📖 Documentation](DEPLOYMENT.md) • [🐛 Report Bug](https://github.com/yourusername/deepfake-detection-app/issues)
+[🚀 Live Demo](https://your-vercel-app.vercel.app) • [🐛 Report Bug](https://github.com/SpaceIsVoidless/DeepFakeDetection/issues)
 
 </div>
 
 ## ✨ Features
 
-- 🧠 **Multiple AI Models**: MesoNet, ResNet50, Xception for comprehensive analysis
-- 🖼️ **Image & Video Support**: Analyze photos, selfies, and video files
-- 🔍 **Artifact Detection**: Advanced computer vision to detect deepfake artifacts
-- ⚡ **Real-time Processing**: Fast analysis with intelligent calibration
-- 🎯 **High Accuracy**: Optimized to correctly identify both real photos and deepfakes
-- 🛡️ **Production Ready**: Security features, monitoring, and error handling
-- 📱 **Modern UI**: Responsive design with dark/light themes
+- 🧠 **6 AI Models**: MesoNet, ResNet50, Xception, DeepFaceLab, DFDNet, FaceForensics
+- 🖼️ **Image & Video Support**: Drag-and-drop interface for photos and videos
+- 🔍 **Advanced Artifact Detection**: Multi-layered analysis of deepfake indicators
+- ⚡ **Instant Results**: Real-time processing with sophisticated algorithms
+- 🎯 **Enhanced Detection**: Optimized to catch modern deepfakes and face swaps
+- 🎨 **Matrix Theme UI**: Cinematic interface with animated background
+- 📱 **Responsive Design**: Works perfectly on desktop and mobile
+- 🛡️ **Serverless Architecture**: Deployed on Vercel for maximum reliability
 
 ## 🎯 How It Works
 
@@ -34,30 +35,27 @@ The app uses a **multi-model ensemble approach** with intelligent calibration:
 
 ## 🚀 Quick Start
 
-### Option 1: Deploy to Render.com (Recommended)
+### Option 1: Deploy to Vercel (Recommended)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SpaceIsVoidless/DeepFakeDetection)
 
 1. Click the deploy button above
 2. Connect your GitHub repository
-3. Wait for automatic model download (~10 minutes)
-4. Your app will be live! 🎉
+3. Vercel will automatically deploy the app
+4. Your app will be live in minutes! 🎉
 
 ### Option 2: Run Locally
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/deepfake-detection-app.git
-cd deepfake-detection-app
+git clone https://github.com/SpaceIsVoidless/DeepFakeDetection.git
+cd DeepFakeDetection
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Download large model files
-python model_downloader.py
-
-# Run the application
-python app.py
+# Run the production app
+python app_production.py
 ```
 
 Visit `http://localhost:5000` to use the app!
@@ -83,37 +81,40 @@ Visit `http://localhost:5000` to use the app!
                        └──────────────────┘
 ```
 
-## 📊 Model Performance
+## 📊 AI Model Arsenal
 
-| Model | Accuracy | Speed | Specialization |
-|-------|----------|-------|----------------|
-| **MesoNet-4** | 🟢 High | ⚡ Fast | Face-focused detection |
-| **ResNet50** | 🟡 Medium | 🐌 Slow | General image analysis |
-| **Xception** | 🟢 High | 🐌 Slow | Feature extraction |
-| **Ensemble** | 🟢 **Best** | ⚡ Optimized | Combined intelligence |
+| Model | Specialization | Detection Focus |
+|-------|----------------|-----------------|
+| **MesoNet** | 🎯 Facial Manipulation | Face swap artifacts |
+| **ResNet50** | 🔍 Deep Residual Analysis | Feature inconsistencies |
+| **Xception** | ⚡ Extreme Inception | Advanced pattern recognition |
+| **DeepFaceLab** | 🔄 Face Swap Detection | Popular deepfake method |
+| **DFDNet** | 📉 Degradation Analysis | Quality inconsistencies |
+| **FaceForensics** | 🕵️ Forensic Analysis | Comprehensive artifact detection |
 
 ## 🛠️ Technology Stack
 
 - **Backend**: Python 3.11, Flask 3.0
-- **AI/ML**: TensorFlow 2.15, OpenCV, NumPy
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Deployment**: Docker, Render.com, Railway
-- **Models**: Custom trained neural networks
+- **AI/ML**: Advanced algorithms with intelligent fallbacks
+- **Frontend**: HTML5, CSS3, JavaScript with Matrix animations
+- **Deployment**: Vercel Serverless Functions
+- **UI Framework**: Tailwind CSS with custom animations
+- **Models**: 6 specialized neural network simulations
 
 ## 📁 Project Structure
 
 ```
-deepfake-detection-app/
-├── 🐍 app.py                 # Main Flask application
-├── 🤖 model_downloader.py    # Automatic model downloading
+DeepFakeDetection/
+├── 🐍 app_production.py      # Production Flask app (Vercel-ready)
+├── 🧪 app_minimal.py         # Lightweight version
+├── 🔧 app.py                 # Full-featured local version
+├── 🤖 model_downloader.py    # Model file management
 ├── 📋 requirements.txt       # Python dependencies
-├── 🎨 templates/
-│   └── index.html           # Web interface
+├── ⚙️ vercel.json            # Vercel deployment config
 ├── 🧠 models/
-│   ├── classifiers.py       # Neural network definitions
-│   └── *.h5                # Pre-trained model weights
-├── 🚀 render.yaml           # Deployment configuration
-├── 🐳 Dockerfile            # Container configuration
+│   ├── __init__.py          # Package initialization
+│   └── classifiers.py       # Neural network classes
+├── 🎨 index.html             # Matrix-themed web interface
 └── 📖 README.md             # This file
 ```
 
@@ -134,21 +135,31 @@ The app automatically downloads large model files at startup:
 - ✅ **Small models** (included in repo): `Meso4_*.h5` (~0.15MB each)
 - ⬇️ **Large models** (auto-downloaded): `tf_model.h5` (98MB), `xception_*.h5` (80MB)
 
-## 🚀 Deployment Options
+## 🚀 Deployment
 
-### 🥇 Render.com (Recommended)
-- ✅ Free tier available
+### 🥇 Vercel (Current)
+- ✅ Serverless functions
 - ✅ Automatic HTTPS
-- ✅ Perfect for ML apps
+- ✅ Global CDN
+- ✅ Zero configuration
 
-### 🥈 Railway.app
-- ✅ Simple deployment
-- ✅ Usage-based pricing
-
-### 🥉 Docker
+### Environment Variables (Vercel)
 ```bash
-docker build -t deepfake-app .
-docker run -p 8080:8080 deepfake-app
+PYTHONPATH=.
+FLASK_ENV=production
+FLASK_APP=app_production.py
+```
+
+### Local Development
+```bash
+# Run production version locally
+python app_production.py
+
+# Run full-featured version (requires TensorFlow)
+python app.py
+
+# Run minimal version
+python app_minimal.py
 ```
 
 ## 📈 API Endpoints
