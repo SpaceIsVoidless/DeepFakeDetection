@@ -572,7 +572,7 @@ def home():
                     <div class="rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 backdrop-blur-lg cyber-grid" style="background-color: var(--secondary-dark);">
                         <!-- Drop Zone -->
                         <div id="drop-zone" class="drop-zone rounded-xl p-6 sm:p-8 lg:p-10 text-center cursor-pointer">
-                            <div class="space-y-4">
+                            <div id="upload-content" class="space-y-4">
                                 <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 model-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" style="color: var(--accent-white);">
                                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
@@ -583,12 +583,27 @@ def home():
                                         Browse Files
                                     </button>
                                 </div>
-                                <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.mp4,.avi" multiple>
+                                <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.gif,.bmp,.mp4,.avi,.mov,.mkv,.webm" multiple>
                             </div>
                         </div>
 
-                        <div id="loading" class="loading hidden">
+                        <!-- File Preview Section -->
+                        <div id="file-preview" class="hidden mt-4">
+                            <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-white font-semibold">Selected Files</h3>
+                                    <button id="clear-files" class="text-gray-400 hover:text-white text-sm">Clear All</button>
+                                </div>
+                                <div id="preview-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+                                <button id="analyze-files" class="w-full mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all transform hover:scale-105">
+                                    Analyze Selected Files
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="loading" class="loading hidden mt-4">
                             <div class="loading-bar"></div>
+                            <p class="text-center text-gray-300 mt-2 text-sm">Processing files...</p>
                         </div>
 
                         <div id="error-message" class="hidden text-center text-red-400 font-semibold mt-4 text-sm sm:text-base"></div>
@@ -834,102 +849,6 @@ def home():
                 </div>
             </div>
         </div>
-                <!-- Left Side - Upload Section -->
-                <div class="lg:w-1/2">
-                    <div class="rounded-2xl shadow-2xl p-8 backdrop-blur-lg cyber-grid" style="background-color: var(--secondary-dark);">
-                        <!-- Drop Zone -->
-                        <div id="drop-zone" class="drop-zone rounded-xl p-10 text-center cursor-pointer">
-                            <div class="space-y-4">
-                                <svg class="mx-auto h-16 w-16 model-icon" stroke="currentColor" fill="none" viewBox="0 0 48 48" style="color: var(--accent-white);">
-                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <div style="color: var(--accent-gray);">
-                                    <p class="text-xl font-semibold">Drag and drop your files here</p>
-                                    <p class="text-sm">or</p>
-                                    <button class="mt-2 px-8 py-3 rounded-lg shadow-lg transition-all font-medium transform hover:scale-105 glow" style="background-color: var(--accent-white); color: var(--primary-dark);">
-                                        Browse Files
-                                    </button>
-                                </div>
-                                <input type="file" id="file-input" class="hidden" accept=".jpg,.jpeg,.png,.mp4,.avi" multiple>
-                            </div>
-                        </div>
-
-                        <div id="loading" class="loading hidden">
-                            <div class="loading-bar"></div>
-                        </div>
-
-                        <div id="error-message" class="hidden text-center text-red-400 font-semibold mt-4"></div>
-                    </div>
-                </div>
-
-                <!-- Right Side - Analysis Results -->
-                <div class="lg:w-1/2">
-                    <div id="results" class="bg-black/50 rounded-2xl shadow-2xl p-8 backdrop-blur-lg cyber-grid">
-                        <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                            <span class="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                                Neural Analysis Matrix
-                            </span>
-                        </h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div id="mesonet" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">MesoNet</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Facial Manipulation Detection</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                            <div id="resnet50" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">ResNet50</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Deep Residual Analysis</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                            <div id="xception" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-purple-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">Xception</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Extreme Inception Detection</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                            <div id="deepfacelab" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">DeepFaceLab</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Face Swap Detection</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                            <div id="dfdnet" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">DFDNet</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Degradation Analysis</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                            <div id="faceforensics" class="result-card p-4 rounded-xl border border-gray-700">
-                                <div class="flex items-center mb-3">
-                                    <div class="w-3 h-3 bg-cyan-500 rounded-full mr-2 animate-pulse"></div>
-                                    <h3 class="font-semibold text-white text-lg">FaceForensics</h3>
-                                </div>
-                                <div class="text-sm text-gray-400 mb-2">Forensic Analysis</div>
-                                <p class="text-gray-300 text-sm">Confidence: <span class="score score-animation font-mono">-</span></p>
-                                <p class="text-gray-300 text-sm">Verdict: <span class="result font-semibold">-</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <script>
             // Matrix animation
@@ -1004,11 +923,19 @@ def home():
                 }
             });
 
-            // File handling
+            // File handling with multiple file support
             const dropZone = document.getElementById('drop-zone');
             const fileInput = document.getElementById('file-input');
             const loading = document.getElementById('loading');
             const errorMessage = document.getElementById('error-message');
+            const filePreview = document.getElementById('file-preview');
+            const previewContainer = document.getElementById('preview-container');
+            const clearFilesBtn = document.getElementById('clear-files');
+            const analyzeFilesBtn = document.getElementById('analyze-files');
+            
+            let selectedFiles = [];
+            let analysisResults = [];
+            let currentFileIndex = 0;
 
             // Handle drag and drop events
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -1042,36 +969,150 @@ def home():
             dropZone.addEventListener('drop', handleDrop, false);
             dropZone.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', handleFiles);
+            clearFilesBtn.addEventListener('click', clearAllFiles);
+            analyzeFilesBtn.addEventListener('click', analyzeAllFiles);
 
             function handleDrop(e) {
                 const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFiles({ target: { files } });
+                const files = Array.from(dt.files);
+                addFiles(files);
             }
 
             function handleFiles(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    uploadFile(file);
+                const files = Array.from(e.target.files);
+                addFiles(files);
+            }
+
+            function addFiles(files) {
+                const validFiles = files.filter(file => {
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'mp4', 'avi', 'mov', 'mkv', 'webm'].includes(extension);
+                });
+
+                if (validFiles.length === 0) {
+                    showError('No valid files selected. Please choose images or videos.');
+                    return;
+                }
+
+                // Add new files to selection
+                validFiles.forEach(file => {
+                    if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                        selectedFiles.push(file);
+                    }
+                });
+
+                updateFilePreview();
+                
+                // If only one file, analyze immediately
+                if (selectedFiles.length === 1) {
+                    analyzeAllFiles();
                 }
             }
 
-            function uploadFile(file) {
+            function updateFilePreview() {
+                if (selectedFiles.length === 0) {
+                    filePreview.classList.add('hidden');
+                    return;
+                }
+
+                filePreview.classList.remove('hidden');
+                previewContainer.innerHTML = '';
+
+                selectedFiles.forEach((file, index) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'relative bg-gray-800 rounded-lg overflow-hidden border border-gray-600 cursor-pointer';
+                    previewItem.onclick = () => displayAnalysis(index);
+                    
+                    const isImage = file.type.startsWith('image/');
+                    
+                    if (isImage) {
+                        const img = document.createElement('img');
+                        img.className = 'w-full h-20 object-cover';
+                        img.src = URL.createObjectURL(file);
+                        previewItem.appendChild(img);
+                    } else {
+                        // Video preview
+                        const videoIcon = document.createElement('div');
+                        videoIcon.className = 'w-full h-20 flex items-center justify-center bg-gray-700';
+                        videoIcon.innerHTML = `
+                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                            </svg>
+                        `;
+                        previewItem.appendChild(videoIcon);
+                    }
+
+                    // File name
+                    const fileName = document.createElement('div');
+                    fileName.className = 'p-2 text-xs text-gray-300 truncate';
+                    fileName.textContent = file.name;
+                    previewItem.appendChild(fileName);
+
+                    // Remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs';
+                    removeBtn.innerHTML = '×';
+                    removeBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        removeFile(index);
+                    };
+                    previewItem.appendChild(removeBtn);
+
+                    previewContainer.appendChild(previewItem);
+                });
+
+                // Update analyze button text
+                analyzeFilesBtn.textContent = `Analyze ${selectedFiles.length} File${selectedFiles.length > 1 ? 's' : ''}`;
+            }
+
+            function removeFile(index) {
+                selectedFiles.splice(index, 1);
+                analysisResults.splice(index, 1);
+                updateFilePreview();
+                if (selectedFiles.length === 0) {
+                    resetResults();
+                    hideError();
+                } else {
+                    displayAnalysis(0);
+                }
+            }
+
+            function clearAllFiles() {
+                selectedFiles = [];
+                analysisResults = [];
+                currentFileIndex = 0;
+                updateFilePreview();
+                resetResults();
+                hideError();
+            }
+
+            function analyzeAllFiles() {
+                if (selectedFiles.length === 0) return;
+
+                currentFileIndex = 0;
+                analysisResults = new Array(selectedFiles.length).fill(null);
+                analyzeNextFile();
+            }
+
+            function analyzeNextFile() {
+                if (currentFileIndex >= selectedFiles.length) {
+                    loading.classList.add('hidden');
+                    return;
+                }
+
+                const file = selectedFiles[currentFileIndex];
+                uploadFile(file, currentFileIndex);
+            }
+
+            function uploadFile(file, index) {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                loading.classList.remove('hidden');
-                errorMessage.classList.add('hidden');
-
-                // Show loading state
-                const resultElements = ['mesonet', 'resnet50', 'xception', 'deepfacelab', 'dfdnet', 'faceforensics'];
-                resultElements.forEach(id => {
-                    const element = document.getElementById(id);
-                    const scoreElement = element.querySelector('.score');
-                    const resultElement = element.querySelector('.result');
-                    scoreElement.textContent = 'Analyzing...';
-                    resultElement.textContent = 'Processing...';
-                });
+                if (index === 0) {
+                    loading.classList.remove('hidden');
+                    hideError();
+                    resetResults();
+                }
 
                 fetch('/upload', {
                     method: 'POST',
@@ -1079,20 +1120,47 @@ def home():
                 })
                 .then(response => response.json())
                 .then(data => {
-                    loading.classList.add('hidden');
-                    if (data.error) {
-                        errorMessage.textContent = data.error;
-                        errorMessage.classList.remove('hidden');
-                    } else {
-                        errorMessage.classList.add('hidden');
+                    analysisResults[index] = data;
+                    if (index === 0) {
                         updateResults(data);
                     }
                 })
                 .catch(error => {
-                    loading.classList.add('hidden');
-                    errorMessage.textContent = 'An error occurred while processing the file.';
-                    errorMessage.classList.remove('hidden');
+                    analysisResults[index] = { error: 'Network error' };
+                })
+                .finally(() => {
+                    currentFileIndex++;
+                    if (currentFileIndex < selectedFiles.length) {
+                        analyzeNextFile();
+                    } else {
+                        loading.classList.add('hidden');
+                    }
                 });
+            }
+
+            function displayAnalysis(index) {
+                const result = analysisResults[index];
+                if (result) {
+                    if (result.error) {
+                        showError(`Error processing ${selectedFiles[index].name}: ${result.error}`);
+                        resetResults();
+                    } else {
+                        hideError();
+                        updateResults(result);
+                    }
+                } else {
+                    resetResults();
+                    showError(`Analysis for ${selectedFiles[index].name} is not available yet.`);
+                }
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+            function hideError() {
+                errorMessage.classList.add('hidden');
             }
 
             function updateResults(data) {
